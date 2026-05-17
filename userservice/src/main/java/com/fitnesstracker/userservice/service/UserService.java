@@ -54,4 +54,9 @@ public class UserService {
         UserResponse userResponse = getUserResponse(user);
         return ResponseEntity.ok(userResponse);
     }
+
+    public ResponseEntity<Boolean> validateUser(String userId) {
+        Boolean userExists = userRepo.existsById(userId);
+        return ResponseEntity.ok(userExists);
+    }
 }
