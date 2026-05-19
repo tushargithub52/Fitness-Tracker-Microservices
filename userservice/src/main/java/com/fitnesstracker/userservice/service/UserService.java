@@ -29,6 +29,7 @@ public class UserService {
         newUser.setPassword(registerRequest.getPassword());
         newUser.setFirstName(registerRequest.getFirstName());
         newUser.setLastName(registerRequest.getLastName());
+        newUser.setKeycloakId(registerRequest.getKeycloakId());
         
         User savedUser = userRepo.save(newUser);
         UserResponse userResponse = getUserResponse(savedUser);
@@ -38,11 +39,11 @@ public class UserService {
     private UserResponse getUserResponse(User user) {
         UserResponse userResponse = new UserResponse();
         userResponse.setId(user.getId());
+        userResponse.setKeycloakId(user.getKeycloakId());
         userResponse.setEmail(user.getEmail());
         userResponse.setFirstName(user.getFirstName());
         userResponse.setLastName(user.getLastName());
         userResponse.setPassword(user.getPassword());
-        userResponse.setRole(user.getRole());
         userResponse.setCreatedAt(user.getCreatedAt().toString());
         userResponse.setUpdatedAt(user.getUpdatedAt().toString());
         return userResponse;
@@ -56,7 +57,7 @@ public class UserService {
     }
 
     public ResponseEntity<Boolean> validateUser(String userId) {
-        Boolean userExists = userRepo.existsById(userId);
+        Boolean userExists = userRepo.existsByKeycloakId(userId);
         return ResponseEntity.ok(userExists);
     }
 }
