@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
@@ -61,5 +63,20 @@ public class ActivityService {
                 .createdAt(savedActivity.getCreatedAt())
                 .updatedAt(savedActivity.getUpdatedAt())
                 .build();
+    }
+
+    public ResponseEntity<List<ActivityResponse>> getUserActivities(String userId) {
+        List<Activity> activities = activityRepo.findByUserId(userId);
+        List<ActivityResponse> activityResponse = activities.stream()
+                .map(this::mapToResponse)
+                .toList();
+        return ResponseEntity.ok(activityResponse);
+    }
+
+    public ResponseEntity<ActivityResponse> getActivityById(String activityId) {
+        ActivityResponse activity = activityRepo.findById(activityId)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new RuntimeException("Activity not found with id: " + activityId));
+        return ResponseEntity.ok(activity);
     }
 }
