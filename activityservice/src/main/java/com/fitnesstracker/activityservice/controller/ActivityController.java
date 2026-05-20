@@ -26,10 +26,14 @@ public class ActivityController {
     public ResponseEntity<List<ActivityResponse>> getUserActivities(@RequestHeader("X-User-ID") String userId){
         return activityService.getUserActivities(userId);
     }
-
-
+    
     @GetMapping("/{activityId}")
     public ResponseEntity<ActivityResponse> getActivity(@PathVariable String activityId){
         return activityService.getActivityById(activityId);
+    }
+    
+    @DeleteMapping("/{activityId}")
+    public ResponseEntity<String> deleteActivity(@PathVariable String activityId, @RequestHeader("X-User-ID") String userId){
+        return activityService.deleteActivity(activityId, userId);
     }
 }

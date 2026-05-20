@@ -79,4 +79,14 @@ public class ActivityService {
                 .orElseThrow(() -> new RuntimeException("Activity not found with id: " + activityId));
         return ResponseEntity.ok(activity);
     }
+
+    public ResponseEntity<String> deleteActivity(String activityId, String userId) {
+        Activity activity = activityRepo.findById(activityId)
+                .orElseThrow(() -> new RuntimeException("Activity not found with id: " + activityId));
+        if (!activity.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to delete this activity");
+        }
+        activityRepo.delete(activity);
+        return ResponseEntity.ok("Activity deleted successfully");
+    }
 }
