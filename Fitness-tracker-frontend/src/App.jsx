@@ -1,58 +1,89 @@
-import { Box, Button } from '@mui/material'
-import { useContext, useEffect, useState } from 'react'
-import { AuthContext } from 'react-oauth2-code-pkce'
+import { useContext, useEffect } from 'react';
+import { AuthContext } from 'react-oauth2-code-pkce';
 import { useDispatch } from 'react-redux';
-import {BrowserRouter as Router, Navigate, Routes, Route, useLocation} from 'react-router'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { setCredentials } from './store/authSlice';
-import ActivityForm from './components/ActivityForm';
-import ActivityList from './components/ActivityList';
+import Navbar from './components/Navbar';
+import HomePage from './pages/HomePage';
+import ActivitiesPage from './pages/ActivitiesPage';
 import ActivityDetails from './components/ActivityDetails';
 
-function App() {
+// MUI dark theme — prevents MUI from injecting white background
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    background: {
+      default: '#0a0b0f',
+      paper: '#161820',
+    },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: { backgroundColor: '#0a0b0f' },
+        body: { backgroundColor: '#0a0b0f', margin: 0, padding: 0 },
+        '#root': { backgroundColor: '#0a0b0f' },
+      },
+    },
+  },
+});
 
-  const {token, tokenData, logIn, logOut, isAuthenticated} = useContext(AuthContext);
+// Protected route wrapper
+const ProtectedRoute = ({ token, children }) => {
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+function App() {
+  const { token, tokenData } = useContext(AuthContext);
   const dispatch = useDispatch();
-  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      dispatch(setCredentials({token, user: tokenData}));
-      setAuthReady(true);
+    if (token && tokenData) {
+      dispatch(setCredentials({ token, user: tokenData }));
     }
-  }, [token, tokenData, dispatch])
-
-  const ActivitiesPage = () => {
-    return (
-      <Box sx={{ p: 2, border: '1px dashed grey' }}>
-        <ActivityForm onActivitiesAdded = {() => window.location.reload()} />
-        <ActivityList />
-      </Box>
-    );
-  }
-  
+  }, [token, tokenData, dispatch]);
 
   return (
-    <Router>
-      {!token ? (
-        <Button variant="contained" onClick={() => logIn()}>
-          Login
-        </Button>
-      ) : (
-        <Box component="section" sx={{ p: 2, border: '1px dashed grey' }} >
-          <Button variant="contained" onClick={() => logOut()} sx={{mb: 2}}>
-            Logout 
-          </Button>
-          <Routes>
-            <Route path='/activities' element={<ActivitiesPage />} />
-            <Route path='/activities/:id' element={<ActivityDetails />} />
-            <Route path='/' element={
-              token ? <Navigate to="/activities" replace /> : <div>Welcome to our App, Please Login to continue</div>
-            } />
-          </Routes>
-        </Box>
-      )}
-    </Router>
-  )
+    <ThemeProvider theme={darkTheme}>
+      <Router>
+        <div style={{
+          minHeight: '100vh',
+          width: '100%',
+          background: '#0a0b0f',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <Navbar />
+          <main style={{ flex: 1 }}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route
+                path="/activities"
+                element={
+                  <ProtectedRoute token={token}>
+                    <ActivitiesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/activities/:id"
+                element={
+                  <ProtectedRoute token={token}>
+                    <ActivityDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;

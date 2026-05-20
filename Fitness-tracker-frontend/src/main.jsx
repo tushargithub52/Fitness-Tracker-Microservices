@@ -4,6 +4,7 @@ import { store } from './store/store'
 import { Provider } from 'react-redux'
 import { AuthProvider } from 'react-oauth2-code-pkce'
 import { authConfig } from './authConfig'
+import './index.css'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 

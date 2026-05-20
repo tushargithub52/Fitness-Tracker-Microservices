@@ -1,7 +1,6 @@
 package com.fitnesstracker.aiservice.repo;
 
 import com.fitnesstracker.aiservice.model.Recommendation;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

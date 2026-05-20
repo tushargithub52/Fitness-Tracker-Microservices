@@ -1,6 +1,5 @@
 package com.fitnesstracker.userservice.dto;
 
-import com.fitnesstracker.userservice.model.UserRole;
 import lombok.Data;
 
 @Data
