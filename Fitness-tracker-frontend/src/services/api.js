@@ -25,3 +25,4 @@ export const getActivities = () => api.get('/activities');
 export const addActivity = (activity) => api.post('/activities', activity);
 export const getActivityDetails = (activityId) => api.get(`/activities/${activityId}`)
 export const getActivityAiRecommendations = (activityId) => api.get(`/recommendations/activity/${activityId}`);
+export const deleteActivity = (activityId) => api.delete(`/activities/${activityId}`);

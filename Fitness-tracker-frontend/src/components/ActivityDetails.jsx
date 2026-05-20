@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { getActivityDetails, getActivityAiRecommendations } from '../services/api';
+import { getActivityDetails, getActivityAiRecommendations, deleteActivity } from '../services/api';
 
 const activityIcons = {
   RUNNING: '🏃', CYCLING: '🚴', SWIMMING: '🏊', WALKING: '🚶',
@@ -154,6 +154,9 @@ const ActivityDetails = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError]     = useState(null);
   const [aiRequested, setAiRequested] = useState(false);
+  const [showConfirm, setShowConfirm]   = useState(false);
+  const [deleting, setDeleting]         = useState(false);
+  const [deleteError, setDeleteError]   = useState(null);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -186,6 +189,20 @@ const ActivityDetails = () => {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteActivity(id);
+      navigate('/activities');
+    } catch (err) {
+      setDeleteError('Failed to delete activity. Please try again.');
+      console.error(err);
+      setDeleting(false);
+      setShowConfirm(false);
+    }
+  };
+
   if (loading) return (
     <div style={styles.page}>
       <div style={styles.centered}>
@@ -212,13 +229,64 @@ const ActivityDetails = () => {
     <div style={styles.page}>
       <div style={styles.container}>
 
-        {/* Back */}
-        <button style={styles.backBtn} onClick={() => navigate('/activities')}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Back to Activities
-        </button>
+        {/* Confirm Delete Dialog */}
+        {showConfirm && (
+          <div style={styles.overlay}>
+            <div style={styles.dialog}>
+              <div style={styles.dialogIcon}>🗑️</div>
+              <h3 style={styles.dialogTitle}>Delete Activity?</h3>
+              <p style={styles.dialogText}>
+                This will permanently delete this <strong style={{ color: '#f1f5f9' }}>{activity.type?.replace(/_/g, ' ')}</strong> session
+                and cannot be undone.
+              </p>
+              <div style={styles.dialogActions}>
+                <button
+                  style={styles.cancelBtn}
+                  onClick={() => setShowConfirm(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  style={{ ...styles.confirmDeleteBtn, opacity: deleting ? 0.6 : 1 }}
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Yes, Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Top bar: Back + Delete */}
+        <div style={styles.topBar}>
+          <button style={styles.backBtn} onClick={() => navigate('/activities')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Back to Activities
+          </button>
+          <button style={styles.deleteBtn} onClick={() => setShowConfirm(true)}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+            Delete
+          </button>
+        </div>
+
+        {/* Delete error */}
+        {deleteError && (
+          <div style={styles.deleteError}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {deleteError}
+          </div>
+        )}
 
         {/* Hero Card */}
         <div style={{ ...styles.heroCard, borderColor: `${color}25` }}>
@@ -385,6 +453,20 @@ const styles = {
   aiError:    { display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 28px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '14px 16px', color: '#f87171', fontSize: '14px' },
   retryBtn:   { marginLeft: 'auto', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: '13px', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'inherit' },
   aiContent:  { padding: '8px 28px 28px', display: 'flex', flexDirection: 'column', gap: '4px' },
+  // Top bar
+  topBar:     { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  // Delete button
+  deleteBtn:  { display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', fontSize: '14px', fontWeight: '500', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit' },
+  deleteError: { display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '14px 16px', color: '#f87171', fontSize: '14px' },
+  // Confirm dialog overlay
+  overlay:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '24px' },
+  dialog:     { background: '#1c1f2a', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '20px', padding: '36px 32px', maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' },
+  dialogIcon: { fontSize: '40px', marginBottom: '16px' },
+  dialogTitle: { fontSize: '20px', fontWeight: '700', color: '#f1f5f9', marginBottom: '12px' },
+  dialogText:  { fontSize: '14px', color: '#64748b', lineHeight: '1.7', marginBottom: '28px' },
+  dialogActions: { display: 'flex', gap: '12px', justifyContent: 'center' },
+  cancelBtn:   { flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: '14px', fontWeight: '600', padding: '11px 20px', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit' },
+  confirmDeleteBtn: { flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '600', padding: '11px 20px', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 0 20px rgba(239,68,68,0.3)' },
 };
 
 // Styles for AI sub-sections (prefixed `s` to keep separate)

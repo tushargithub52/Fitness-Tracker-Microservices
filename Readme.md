@@ -486,6 +486,45 @@ spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8181/real
 
 ## Getting Started
 
+### Option A — Docker (Recommended)
+
+The entire stack runs with a single command. No need to install MySQL, MongoDB, Kafka, or Keycloak manually.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/your-username/Fitness-Tracker-Microservices.git
+cd Fitness-Tracker-Microservices
+
+# 2. Create your .env.example file from the example
+cp .env.example .env.example
+# Edit .env.example and add your GEMINI_URL and GEMINI_KEY
+
+# 3. Build and start everything
+docker-compose up --build
+
+# 4. Stop everything (add -v to also delete data volumes)
+docker-compose down
+```
+
+**After startup:**
+| URL | Service |
+|---|---|
+| `http://localhost:5173` | React Frontend |
+| `http://localhost:8080` | API Gateway |
+| `http://localhost:8181` | Keycloak Admin Console |
+| `http://localhost:8761` | Eureka Dashboard |
+| `http://localhost:8888` | Config Server |
+
+> **Note:** First run takes ~5-10 minutes to build all Docker images. Subsequent runs are fast due to layer caching.
+
+> **Keycloak setup still required:** After `docker-compose up`, you still need to manually create the `FitTrack-AI` realm and `oauth2-pkce-client` in Keycloak at `http://localhost:8181`. See [Keycloak Setup](#keycloak-setup) below. This is a one-time step — the data persists in the container.
+
+---
+
+### Option B — Manual Local Setup
+
 ### Prerequisites
 
 Ensure the following are installed and running before starting the services:
